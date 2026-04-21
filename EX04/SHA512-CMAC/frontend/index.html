@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHA-512 & CMAC Algorithm Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 SHA-512 & CMAC Algorithm Visualizer</h1>
+            <p>Step-by-step visualization of cryptographic hash functions</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="sha512">SHA-512</button>
+            <button class="tab-btn" data-tab="cmac">CMAC</button>
+        </div>
+        
+        <!-- SHA-512 Section -->
+        <div id="sha512-panel" class="panel active">
+            <div class="input-section">
+                <h2>SHA-512 Hash Calculator</h2>
+                <div class="input-group">
+                    <label for="sha512-input">Enter Message:</label>
+                    <input type="text" id="sha512-input" placeholder="Type your message here...">
+                    <button class="btn" onclick="computeSHA512()">Compute SHA-512</button>
+                </div>
+            </div>
+            
+            <div class="results-section" id="sha512-results" style="display: none;">
+                <div class="result-summary">
+                    <div class="result-item">
+                        <span class="label">Input:</span>
+                        <span class="value" id="sha512-result-input"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">SHA-512 Hash:</span>
+                        <span class="value hash" id="sha512-result-hash"></span>
+                    </div>
+                </div>
+                
+                <div class="steps-container">
+                    <h3>Step-by-Step Process</h3>
+                    <div id="sha512-steps"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CMAC Section -->
+        <div id="cmac-panel" class="panel">
+            <div class="input-section">
+                <h2>CMAC Calculator</h2>
+                <div class="input-group">
+                    <label for="cmac-input">Enter Message:</label>
+                    <input type="text" id="cmac-input" placeholder="Type your message here...">
+                </div>
+                <div class="input-group">
+                    <label for="cmac-key">Enter Key:</label>
+                    <input type="text" id="cmac-key" placeholder="Enter secret key (min 16 chars)...">
+                    <button class="btn" onclick="computeCMAC()">Compute CMAC</button>
+                </div>
+            </div>
+            
+            <div class="results-section" id="cmac-results" style="display: none;">
+                <div class="result-summary">
+                    <div class="result-item">
+                        <span class="label">Input Message:</span>
+                        <span class="value" id="cmac-result-input"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Key:</span>
+                        <span class="value" id="cmac-result-key"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">CMAC Tag:</span>
+                        <span class="value hash" id="cmac-result-hash"></span>
+                    </div>
+                </div>
+                
+                <div class="key-info">
+                    <h3>Key Derivation</h3>
+                    <div class="key-derivation">
+                        <div class="key-item">
+                            <span class="label">L (AES(K, 0ⁿ)):</span>
+                            <code id="cmac-L"></code>
+                        </div>
+                        <div class="key-item">
+                            <span class="label">K1:</span>
+                            <code id="cmac-K1"></code>
+                        </div>
+                        <div class="key-item">
+                            <span class="label">K2:</span>
+                            <code id="cmac-K2"></code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="steps-container">
+                    <h3>Step-by-Step Process</h3>
+                    <div id="cmac-steps"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Educational visualization of cryptographic algorithms</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
