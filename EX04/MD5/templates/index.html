@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD5 Hashing Process Demonstration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #8892b0;
+            font-size: 1.1em;
+        }
+        
+        .input-section {
+            background: rgba(255,255,255,0.05);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 2px solid #2d3748;
+            background: #1a202c;
+            color: #e2e8f0;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0,212,255,0.2);
+        }
+        
+        button {
+            padding: 15px 35px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .examples {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .example-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #a0aec0;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .example-btn:hover {
+            background: rgba(0,212,255,0.2);
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+        
+        .result-section {
+            background: rgba(255,255,255,0.05);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+        
+        .result-section.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            font-size: 2em;
+            color: #00d4ff;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 15px 0;
+            word-break: break-all;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+        
+        .summary {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .summary-item {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .summary-label {
+            color: #718096;
+            font-size: 0.85em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .summary-value {
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .steps-container {
+            background: rgba(255,255,255,0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .step {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            overflow: hidden;
+        }
+        
+        .step-header {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        
+        .step-header:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .step-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .step-toggle {
+            font-size: 1.5em;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+        
+        .step.expanded .step-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .step-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        
+        .step.expanded .step-content {
+            max-height: 2000px;
+        }
+        
+        .step-body {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .step-description {
+            color: #a0aec0;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
+        .step-values {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .step-value {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            color: #e2e8f0;
+        }
+        
+        .step-hex {
+            background: #1a202c;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00d4ff;
+            word-break: break-all;
+            margin-top: 10px;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+        
+        .binary-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            color: #718096;
+            word-break: break-all;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255,107,107,0.1);
+            border: 1px solid rgba(255,107,107,0.3);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .input-group { flex-direction: column; }
+            button { width: 100%; }
+            .hash-display { font-size: 1.3em; }
+            .summary { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MD5 Hashing Process Demonstration</h1>
+            <p class="subtitle">Visualize every step of the MD5 algorithm - from input to final 128-bit hash</p>
+        </header>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" id="messageInput" placeholder="Enter your message to hash..." onkeypress="handleEnter(event)">
+                <button onclick="computeHash()">Compute MD5 Hash</button>
+            </div>
+            <div class="examples">
+                <span style="color: #718096; margin-right: 10px;">Try:</span>
+                <button class="example-btn" onclick="setExample('abc')">abc</button>
+                <button class="example-btn" onclick="setExample('The quick brown fox jumps over the lazy dog')">Pangram</button>
+                <button class="example-btn" onclick="setExample('message digest')">message digest</button>
+                <button class="example-btn" onclick="setExample('1234567890')">1234567890</button>
+            </div>
+        </div>
+        
+        <div id="errorContainer"></div>
+        
+        <div id="resultSection" class="result-section">
+            <h2 style="color: #e2e8f0; margin-bottom: 15px;">MD5 Hash Result</h2>
+            <div class="hash-display" id="hashOutput"></div>
+            <div class="summary" id="summaryOutput"></div>
+        </div>
+        
+        <div class="steps-container" id="stepsContainer">
+            <h2 style="color: #e2e8f0; margin-bottom: 20px;">Step-by-Step Process</h2>
+            <div id="stepsContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                computeHash();
+            }
+        }
+        
+        function setExample(message) {
+            document.getElementById('messageInput').value = message;
+            computeHash();
+        }
+        
+        async function computeHash() {
+            const message = document.getElementById('messageInput').value;
+            const errorContainer = document.getElementById('errorContainer');
+            const resultSection = document.getElementById('resultSection');
+            const stepsContainer = document.getElementById('stepsContainer');
+            
+            // Clear previous
+            errorContainer.innerHTML = '';
+            resultSection.classList.remove('visible');
+            document.getElementById('stepsContent').innerHTML = '<div class="loading"><div class="spinner"></div>Computing hash...</div>';
+            
+            if (!message) {
+                errorContainer.innerHTML = '<div class="error">Please enter a message to hash</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    errorContainer.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+                
+                // Display result
+                document.getElementById('hashOutput').textContent = data.hash;
+                document.getElementById('summaryOutput').innerHTML = `
+                    <div class="summary-item">
+                        <span class="summary-label">Original Length</span>
+                        <span class="summary-value">${data.summary.original_length} bytes</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Padded Length</span>
+                        <span class="summary-value">${data.summary.padded_length} bytes</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">512-bit Blocks</span>
+                        <span class="summary-value">${data.summary.num_blocks}</span>
+                    </div>
+                `;
+                
+                resultSection.classList.add('visible');
+                
+                // Display steps
+                displaySteps(data.steps);
+                
+            } catch (error) {
+                errorContainer.innerHTML = `<div class="error">Failed to compute hash: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        function displaySteps(steps) {
+            const container = document.getElementById('stepsContent');
+            container.innerHTML = '';
+            
+            if (!steps || steps.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">No steps to display</p>';
+                return;
+            }
+            
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step';
+                stepDiv.innerHTML = `
+                    <div class="step-header" onclick="toggleStep(${index})">
+                        <span class="step-title">${step.title}</span>
+                        <span class="step-toggle">▼</span>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-body">
+                            <p class="step-description">${step.description}</p>
+                            ${step.values && step.values.length > 0 ? `
+                                <div class="step-values">
+                                    ${step.values.map(v => `<div class="step-value">${escapeHtml(v)}</div>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${step.hex_values && step.hex_values.length > 0 ? `
+                                <div class="step-hex">${escapeHtml(step.hex_values[0])}</div>
+                            ` : ''}
+                            ${step.binary ? `
+                                <div class="binary-display">${escapeHtml(step.binary)}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(stepDiv);
+            });
+            
+            // Expand first step by default
+            if (container.firstChild) {
+                container.firstChild.classList.add('expanded');
+            }
+        }
+        
+        function toggleStep(index) {
+            const steps = document.querySelectorAll('.step');
+            if (steps[index]) {
+                steps[index].classList.toggle('expanded');
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Load an example on page load
+        window.onload = () => {
+            setExample('abc');
+        };
+    </script>
+</body>
+</html>
