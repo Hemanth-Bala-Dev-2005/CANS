@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CipherLab - Interactive Cipher Educational Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-surface: #12121a;
+            --bg-card: #1a1a24;
+            --primary: #00ff88;
+            --primary-dim: #00cc6a;
+            --secondary: #00d4ff;
+            --accent: #ff6b6b;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888888;
+            --border: #2a2a3a;
+        }
+
+        body {
+            font-family: 'Fira Code', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 212, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 136, 0.01) 2px,
+                rgba(0, 255, 136, 0.01) 4px
+            );
+            pointer-events: none;
+            z-index: -1;
+            animation: matrixScroll 20s linear infinite;
+        }
+
+        @keyframes matrixScroll {
+            from { transform: translateY(0); }
+            to { transform: translateY(40px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            padding: 12px 30px;
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary-dim);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-panel {
+            background: var(--bg-surface);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '>';
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+            color: var(--bg-dark);
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: var(--border);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .output-panel {
+            background: var(--bg-surface);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            min-height: 500px;
+        }
+
+        .result-box {
+            background: var(--bg-dark);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .result-value {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            border-color: var(--secondary);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: var(--bg-dark);
+            font-size: 0.9rem;
+        }
+
+        .step-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--secondary);
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .step-detail {
+            background: var(--bg-dark);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .matrix-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+            background: var(--bg-dark);
+        }
+
+        .transform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .transform-item {
+            background: var(--bg-dark);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .transform-arrow {
+            color: var(--secondary);
+            font-size: 1.2rem;
+            margin: 5px 0;
+        }
+
+        .digraph-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .digraph-item {
+            background: var(--bg-dark);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        .digraph-note {
+            font-size: 0.7rem;
+            color: var(--accent);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .encryption-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .encryption-item {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .encryption-pair {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .encryption-details {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .encryption-rule {
+            color: var(--secondary);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 15px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: var(--bg-dark);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copy-feedback.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="matrix-bg"></div>
+    <div class="copy-feedback" id="copyFeedback">Copied!</div>
+
+    <div class="container">
+        <header>
+            <h1 class="logo">CipherLab</h1>
+            <p class="tagline">Interactive Cipher Encryption Explorer</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-cipher="caesar">Caesar Cipher</button>
+            <button class="tab-btn" data-cipher="playfair">Playfair Cipher</button>
+            <button class="tab-btn" data-cipher="hill">Hill Cipher</button>
+        </div>
+
+        <div class="main-content">
+            <div class="input-panel">
+                <h2 class="panel-title">Input</h2>
+                
+                <div class="form-group">
+                    <label for="plaintext">Plaintext Message</label>
+                    <textarea id="plaintext" placeholder="Enter your message..."></textarea>
+                </div>
+
+                <div class="form-group" id="keyGroup">
+                    <label for="key" id="keyLabel">Key</label>
+                    <input type="text" id="key" placeholder="Enter key...">
+                    <p class="hint" id="keyHint"></p>
+                </div>
+
+                <div class="form-group" id="shiftGroup">
+                    <label for="shift">Shift Value (1-25)</label>
+                    <input type="number" id="shift" min="1" max="25" value="3">
+                    <p class="hint">Number of positions to shift each letter</p>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-primary" id="encryptBtn">Encrypt</button>
+                    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </div>
+
+            <div class="output-panel">
+                <h2 class="panel-title">Output</h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Encrypting...</p>
+                </div>
+
+                <div id="outputContent">
+                    <div class="placeholder">
+                        <div class="placeholder-icon">🔐</div>
+                        <p>Enter a message and click Encrypt to see the encryption steps</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCipher = 'caesar';
+        const keyHints = {
+            caesar: '',
+            playfair: 'Enter a word or phrase for the key',
+            hill: 'Enter 4 numbers as comma-separated: e.g., "3,2,1,5"'
+        };
+        const keyLabels = {
+            caesar: 'Shift (optional, default 3)',
+            playfair: 'Key Word',
+            hill: 'Key Matrix (2x2)'
+        };
+
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const plaintextInput = document.getElementById('plaintext');
+        const keyInput = document.getElementById('key');
+        const shiftInput = document.getElementById('shift');
+        const keyGroup = document.getElementById('keyGroup');
+        const shiftGroup = document.getElementById('shiftGroup');
+        const keyLabel = document.getElementById('keyLabel');
+        const keyHint = document.getElementById('keyHint');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const outputContent = document.getElementById('outputContent');
+        const loading = document.getElementById('loading');
+        const copyFeedback = document.getElementById('copyFeedback');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCipher = btn.dataset.cipher;
+                updateInputFields();
+                clearOutput();
+            });
+        });
+
+        function updateInputFields() {
+            if (currentCipher === 'caesar') {
+                keyGroup.style.display = 'none';
+                shiftGroup.style.display = 'block';
+            } else {
+                keyGroup.style.display = 'block';
+                shiftGroup.style.display = 'none';
+                keyLabel.textContent = keyLabels[currentCipher];
+                keyHint.textContent = keyHints[currentCipher];
+            }
+            keyInput.value = '';
+        }
+
+        function clearOutput() {
+            outputContent.innerHTML = `
+                <div class="placeholder">
+                    <div class="placeholder-icon">🔐</div>
+                    <p>Enter a message and click Encrypt to see the encryption steps</p>
+                </div>
+            `;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            plaintextInput.value = '';
+            keyInput.value = '';
+            if (currentCipher === 'caesar') {
+                shiftInput.value = '3';
+            }
+            clearOutput();
+        });
+
+        encryptBtn.addEventListener('click', async () => {
+            const plaintext = plaintextInput.value.trim();
+            if (!plaintext) {
+                showError('Please enter a plaintext message');
+                return;
+            }
+
+            loading.style.display = 'block';
+            outputContent.innerHTML = '';
+
+            let data;
+            try {
+                const endpoint = `/${currentCipher}`;
+                let body = { plaintext };
+                
+                if (currentCipher === 'caesar') {
+                    body.shift = shiftInput.value || 3;
+                } else {
+                    body.key = keyInput.value;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    showError(result.error);
+                } else {
+                    displayResult(result);
+                }
+            } catch (err) {
+                showError('An error occurred. Please check your input.');
+            }
+
+            loading.style.display = 'none';
+        });
+
+        function showError(message) {
+            outputContent.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function displayResult(result) {
+            let html = `
+                <div class="result-box">
+                    <span class="result-label">Encrypted Result</span>
+                    <span class="result-value" id="resultValue">${result.encrypted}</span>
+                    <button class="copy-btn" onclick="copyResult()">Copy</button>
+                </div>
+                <div class="steps-container">
+            `;
+
+            result.steps.forEach(step => {
+                html += renderStep(step);
+            });
+
+            html += '</div>';
+            outputContent.innerHTML = html;
+        }
+
+        function renderStep(step) {
+            let content = `<p class="step-description">${step.description || ''}</p>`;
+            
+            if (step.detail) {
+                content += `<div class="step-detail">${step.detail}</div>`;
+            }
+
+            if (step.matrix) {
+                content += '<table class="matrix-table">';
+                step.matrix.forEach(row => {
+                    content += '<tr>';
+                    row.forEach(cell => {
+                        content += `<td>${cell.letter || cell}</td>`;
+                    });
+                    content += '</tr>';
+                });
+                content += '</table>';
+            }
+
+            if (step.transformations) {
+                content += '<div class="transform-grid">';
+                step.transformations.forEach(t => {
+                    content += `
+                        <div class="transform-item">
+                            <div>${t.letter} → ${t.result}</div>
+                            <div class="transform-arrow">↓</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary)">${t.position} + ${t.shift} = ${t.new_position}</div>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            }
+
+            if (step.digraphs) {
+                content += '<div class="digraph-list">';
+                step.digraphs.forEach(d => {
+                    content += `
+                        <div class="digraph-item">
+                            ${d.pair}
+                            ${d.note ? `<span class="digraph-note">${d.note}</span>` : ''}
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            }
+
+            if (step.encryptions) {
+                content += '<div class="encryption-list">';
+                step.encryptions.forEach(e => {
+                    if (e.multiplication) {
+                        content += `
+                            <div class="encryption-item">
+                                <div class="encryption-pair">${e.block} → ${e.letters}</div>
+                                <div class="encryption-details">
+                                    Numbers: [${e.numbers.join(', ')}]<br>
+                                    ${e.multiplication.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        content += `
+                            <div class="encryption-item">
+                                <div class="encryption-pair">${e.pair} → ${e.result}</div>
+                                <div class="encryption-details">
+                                    ${e.a_coords} → ${e.b_coords}
+                                </div>
+                                <div class="encryption-rule">${e.rule}</div>
+                            </div>
+                        `;
+                    }
+                });
+                content += '</div>';
+            }
+
+            if (step.conversions) {
+                content += '<div class="transform-grid">';
+                step.conversions.forEach(c => {
+                    content += `
+                        <div class="transform-item">
+                            <div>${c.letter}</div>
+                            <div class="transform-arrow">→</div>
+                            <div style="color: var(--primary)">${c.number}</div>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            }
+
+            return `
+                <div class="step">
+                    <div class="step-header">
+                        <span class="step-number">${step.step}</span>
+                        <span class="step-title">${step.title}</span>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        }
+
+        function copyResult() {
+            const resultEl = document.getElementById('resultValue');
+            const text = resultEl.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                copyFeedback.classList.add('show');
+                setTimeout(() => copyFeedback.classList.remove('show'), 2000);
+            });
+        }
+
+        updateInputFields();
+    </script>
+</body>
+</html>

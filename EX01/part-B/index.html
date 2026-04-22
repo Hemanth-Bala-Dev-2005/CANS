@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NumberTheoryLab - Primitive Roots & Extended Euclidean Algorithm</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0d1117;
+            --bg-surface: #161b22;
+            --bg-card: #1c2128;
+            --primary: #58a6ff;
+            --secondary: #7ee787;
+            --accent: #f78166;
+            --tertiary: #d2a8ff;
+            --text: #c9d1d9;
+            --muted: #8b949e;
+            --border: #30363d;
+        }
+
+        body {
+            font-family: 'Fira Code', monospace;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(88, 166, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(126, 231, 135, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(210, 168, 255, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin: 30px 0;
+            background: var(--bg-surface);
+            padding: 6px;
+            border-radius: 12px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tab-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border-radius: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+            background: var(--bg-card);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '∫';
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.15);
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 6px;
+            opacity: 0.8;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover {
+            background: #79b8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(88, 166, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--muted);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .output-panel {
+            min-height: 500px;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+        }
+
+        .placeholder-icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .result-box {
+            background: var(--bg-dark);
+            border: 2px solid var(--secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--tertiary));
+            border-radius: 12px 12px 0 0;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .result-sub {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.25s ease;
+        }
+
+        .step:hover {
+            border-color: var(--primary);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--tertiary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--bg-dark);
+        }
+
+        .step-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .step-description {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            padding-left: 44px;
+        }
+
+        .step-detail {
+            background: var(--bg-dark);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--secondary);
+            border-left: 3px solid var(--secondary);
+            margin-left: 44px;
+        }
+
+        .test-list {
+            margin-left: 44px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .test-item {
+            background: var(--bg-dark);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-item.pass {
+            border-left: 3px solid var(--secondary);
+        }
+
+        .test-item.fail {
+            border-left: 3px solid var(--accent);
+        }
+
+        .test-formula {
+            color: var(--text);
+        }
+
+        .test-result {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .test-result.one {
+            color: var(--accent);
+        }
+
+        .test-result.not-one {
+            color: var(--secondary);
+        }
+
+        .coefficient-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-left: 44px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .coef-item {
+            text-align: center;
+        }
+
+        .coef-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .coef-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .division-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-left: 44px;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .error-box {
+            background: rgba(247, 129, 102, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 16px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--secondary);
+            color: var(--bg-dark);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copy-feedback.show {
+            transform: translateX(0);
+        }
+
+        .root-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-left: 44px;
+            margin-top: 12px;
+        }
+
+        .root-item {
+            background: linear-gradient(135deg, rgba(126, 231, 135, 0.15), rgba(126, 231, 135, 0.05));
+            border: 1px solid var(--secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--secondary);
+            font-size: 0.95rem;
+        }
+
+        .equation-display {
+            font-family: 'JetBrains Mono', monospace;
+            padding: 14px 18px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-left: 44px;
+            display: inline-block;
+            font-size: 1rem;
+        }
+
+        .eq-a { color: var(--primary); }
+        .eq-b { color: var(--tertiary); }
+        .eq-result { color: var(--secondary); }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="copy-feedback" id="copyFeedback">Copied!</div>
+
+    <div class="container">
+        <header>
+            <h1 class="logo">NumberTheoryLab</h1>
+            <p class="subtitle">Interactive Number Theory Explorer</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="primitive">Primitive Roots</button>
+            <button class="tab-btn" data-tab="egcd">Extended Euclidean</button>
+        </div>
+
+        <div class="main-content">
+            <div class="panel input-panel">
+                <h2 class="panel-title">Input</h2>
+                
+                <div id="primitive-inputs">
+                    <div class="form-group">
+                        <label for="n-value">Enter n</label>
+                        <input type="number" id="n-value" min="1" placeholder="Enter positive integer...">
+                        <p class="form-hint">n must be: 1, 2, 4, p^k, or 2p^k (p = odd prime)</p>
+                    </div>
+                </div>
+                
+                <div id="egcd-inputs" style="display: none;">
+                    <div class="form-group">
+                        <label for="a-value">Enter a</label>
+                        <input type="number" id="a-value" placeholder="First integer...">
+                    </div>
+                    <div class="form-group">
+                        <label for="b-value">Enter b</label>
+                        <input type="number" id="b-value" placeholder="Second integer...">
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-primary" id="calculateBtn">Calculate</button>
+                    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </div>
+
+            <div class="panel output-panel">
+                <h2 class="panel-title">Output</h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Computing...</p>
+                </div>
+                
+                <div id="output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'primitive';
+
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const primitiveInputs = document.getElementById('primitive-inputs');
+        const egcdInputs = document.getElementById('egcd-inputs');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const output = document.getElementById('output');
+        const loading = document.getElementById('loading');
+        const copyFeedback = document.getElementById('copyFeedback');
+
+        const nInput = document.getElementById('n-value');
+        const aInput = document.getElementById('a-value');
+        const bInput = document.getElementById('b-value');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.dataset.tab;
+                
+                if (currentTab === 'primitive') {
+                    primitiveInputs.style.display = 'block';
+                    egcdInputs.style.display = 'none';
+                } else {
+                    primitiveInputs.style.display = 'none';
+                    egcdInputs.style.display = 'block';
+                }
+                clearOutput();
+            });
+        });
+
+        function clearOutput() {
+            output.innerHTML = `
+                <div class="placeholder">
+                    <div class="placeholder-icon">∑</div>
+                    <p>Enter values and click Calculate to see the computation steps</p>
+                </div>
+            `;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            nInput.value = '';
+            aInput.value = '';
+            bInput.value = '';
+            clearOutput();
+        });
+
+        calculateBtn.addEventListener('click', async () => {
+            loading.style.display = 'block';
+            output.innerHTML = '';
+
+            try {
+                let response, result;
+                
+                if (currentTab === 'primitive') {
+                    const n = parseInt(nInput.value);
+                    if (!n || n < 1) {
+                        throw new Error('Please enter a positive integer n ≥ 1');
+                    }
+                    
+                    response = await fetch('/primitive-roots', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ n })
+                    });
+                    result = await response.json();
+                    displayPrimitiveRoots(result);
+                } else {
+                    const a = parseInt(aInput.value);
+                    const b = parseInt(bInput.value);
+                    
+                    if (isNaN(a) || isNaN(b)) {
+                        throw new Error('Please enter both integers a and b');
+                    }
+                    
+                    response = await fetch('/extended-gcd', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ a, b })
+                    });
+                    result = await response.json();
+                    displayExtendedGCD(result);
+                }
+            } catch (err) {
+                output.innerHTML = `<div class="error-box">${err.message}</div>`;
+            }
+
+            loading.style.display = 'none';
+        });
+
+        function displayPrimitiveRoots(result) {
+            if (result.error) {
+                output.innerHTML = `<div class="error-box">${result.error}</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="result-box">
+                    <span class="result-label">Results for n = ${result.n}</span>
+                    <span class="result-value" id="resultValue">${result.primitive_roots.join(', ') || 'None'}</span>
+                    <button class="copy-btn" onclick="copyResult()">Copy</button>
+                    <div class="result-sub">φ(${result.n}) = ${result.phi}</div>
+                </div>
+                <div class="steps-container">
+            `;
+
+            result.steps.forEach(step => {
+                html += renderPrimitiveStep(step);
+            });
+
+            html += '</div>';
+            output.innerHTML = html;
+        }
+
+        function renderPrimitiveStep(step) {
+            let content = '';
+            
+            if (step.description) {
+                content += `<p class="step-description">${step.description}</p>`;
+            }
+            
+            if (step.detail) {
+                content += `<div class="step-detail">${step.detail}</div>`;
+            }
+            
+            if (step.title.includes('Testing g =') && step.tests) {
+                content += '<div class="test-list">';
+                step.tests.forEach(t => {
+                    const isPass = !t.is_one;
+                    content += `
+                        <div class="test-item ${isPass ? 'pass' : 'fail'}">
+                            <span class="test-formula">g^${step.detail?.match(/\d+/)?.[0] || 'φ/p'} ÷ ${t.factor} = g^${t.exp} ≡ ${t.result}</span>
+                            <span class="test-result ${t.result === 1 ? 'one' : 'not-one'}">${t.result === 1 ? '= 1 ✗' : '≠ 1 ✓'}</span>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            }
+            
+            if (step.title.includes('Primitive Roots Found')) {
+                content += `<div class="root-list">${step.detail.replace(/[\[\]]/g, '').split(',').map(r => `<span class="root-item">${r.trim()}</span>`).join('')}</div>`;
+            }
+
+            return `
+                <div class="step">
+                    <div class="step-header">
+                        <span class="step-number">${step.step}</span>
+                        <span class="step-title">${step.title}</span>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        }
+
+        function displayExtendedGCD(result) {
+            if (result.error) {
+                output.innerHTML = `<div class="error-box">${result.error}</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="result-box">
+                    <span class="result-label">GCD Result</span>
+                    <span class="result-value" id="resultValue">gcd(${result.a}, ${result.b}) = ${result.gcd}</span>
+                    <button class="copy-btn" onclick="copyResult()">Copy</button>
+                    <div class="equation-display">
+                        <span class="eq-a">${result.a}</span> × (<span class="eq-b">${result.x}</span>) + 
+                        <span class="eq-a">${result.b}</span> × (<span class="eq-b">${result.y}</span>) = 
+                        <span class="eq-result">${result.gcd}</span>
+                    </div>
+                </div>
+                <div class="steps-container">
+            `;
+
+            result.steps.forEach(step => {
+                html += renderEGCDStep(step);
+            });
+
+            html += '</div>';
+            output.innerHTML = html;
+        }
+
+        function renderEGCDStep(step) {
+            let content = '';
+            
+            if (step.description) {
+                content += `<p class="step-description">${step.description}</p>`;
+            }
+            
+            if (step.detail) {
+                content += `<div class="step-detail">${step.detail}</div>`;
+            }
+            
+            if (step.q !== undefined && step.q !== null) {
+                content += `<div class="division-display">${step.a} = ${step.q} × ${step.b} + ${step.r}</div>`;
+            }
+            
+            if (step.coefficients) {
+                content += `
+                    <div class="coefficient-box">
+                        <div class="coef-item">
+                            <div class="coef-label">x</div>
+                            <div class="coef-value">${step.coefficients.x}</div>
+                        </div>
+                        <div class="coef-item">
+                            <div class="coef-label">y</div>
+                            <div class="coef-value">${step.coefficients.y}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="step">
+                    <div class="step-header">
+                        <span class="step-number">${step.step}</span>
+                        <span class="step-title">${step.title}</span>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        }
+
+        function copyResult() {
+            const el = document.getElementById('resultValue');
+            const text = el.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                copyFeedback.classList.add('show');
+                setTimeout(() => copyFeedback.classList.remove('show'), 2000);
+            });
+        }
+
+        clearOutput();
+    </script>
+</body>
+</html>
