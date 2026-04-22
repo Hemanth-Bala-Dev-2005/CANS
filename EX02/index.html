@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptography Lab - DES & AES Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --success: #059669;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-light: #f1f5f9;
+            --text-dim: #94a3b8;
+            --des-color: #06b6d4;
+            --aes-color: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--des-color), var(--aes-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+        
+        .algorithm-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tab-btn.des {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+        }
+        
+        .tab-btn.aes {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            color: white;
+        }
+        
+        .tab-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .input-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .input-hint {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+        
+        .encrypt-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .encrypt-btn.des {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+        }
+        
+        .encrypt-btn.aes {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            color: white;
+        }
+        
+        .encrypt-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .encrypt-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results-section {
+            display: none;
+            gap: 30px;
+        }
+        
+        .results-section.visible {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        @media (max-width: 1000px) {
+            .results-section.visible {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid #334155;
+        }
+        
+        .result-card h3 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-card h3.des {
+            color: var(--des-color);
+        }
+        
+        .result-card h3.aes {
+            color: var(--aes-color);
+        }
+        
+        .output-display {
+            background: var(--bg-input);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            border: 2px solid #475569;
+        }
+        
+        .output-display label {
+            display: block;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .steps-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .steps-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .steps-container::-webkit-scrollbar-track {
+            background: var(--bg-input);
+            border-radius: 4px;
+        }
+        
+        .steps-container::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        
+        .step-group {
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .step-header {
+            background: #334155;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        
+        .step-header:hover {
+            background: #475569;
+        }
+        
+        .step-header h4 {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-toggle {
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        
+        .step-group.open .step-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .step-content {
+            display: none;
+            padding: 15px 20px;
+            background: var(--bg-dark);
+        }
+        
+        .step-group.open .step-content {
+            display: block;
+        }
+        
+        .step-item {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .step-item h5 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .step-item p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .step-item pre {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: var(--text-light);
+        }
+        
+        .binary-display {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.visible {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #334155;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .info-box p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+        
+        .flow-box {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .flow-box.input { background: #3b82f6; }
+        .flow-box.output { background: #10b981; }
+        .flow-box.process { background: #8b5cf6; }
+        .flow-box.xor { background: #f59e0b; }
+        
+        .arrow {
+            display: flex;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cryptography Lab</h1>
+            <p>Interactive visualization of DES and AES encryption algorithms - See every step!</p>
+        </header>
+        
+        <div class="algorithm-tabs">
+            <button class="tab-btn des active" onclick="switchAlgorithm('des')">
+                DES (Data Encryption Standard)
+            </button>
+            <button class="tab-btn aes" onclick="switchAlgorithm('aes')">
+                AES (Advanced Encryption Standard)
+            </button>
+        </div>
+        
+        <div class="input-section">
+            <div class="info-box" id="algorithm-info">
+                <h4>About DES</h4>
+                <p>DES is a symmetric-key block cipher with 64-bit block size and 56-bit key. It uses 16 rounds of Feistel network with expansion, substitution (S-boxes), and permutation (P-box) operations. The algorithm was once the standard but is now considered insecure due to its small key size.</p>
+            </div>
+            
+            <div class="input-group">
+                <label>Plaintext Input</label>
+                <input type="text" id="plaintext" placeholder="Enter text to encrypt (e.g., Hello World)" value="Hello">
+            </div>
+            
+            <div class="input-group">
+                <label>Key (Hex)</label>
+                <input type="text" id="key" placeholder="Enter 16 hex characters for AES or 16 hex for DES" value="133457799BBCDFF1">
+                <p class="input-hint" id="key-hint">DES: 16 hex characters (64 bits, 8 bytes) | Uses 56 bits + 8 parity bits</p>
+            </div>
+            
+            <button class="encrypt-btn des" id="encrypt-btn" onclick="encrypt()">
+                Encrypt & Visualize Steps
+            </button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing encryption steps...</p>
+        </div>
+        
+        <div class="results-section" id="results">
+            <div class="result-card">
+                <h3 class="des">Encryption Results</h3>
+                <div class="output-display">
+                    <label>Plaintext:</label>
+                    <span id="result-plaintext"></span>
+                </div>
+                <div class="output-display">
+                    <label>Key (Hex):</label>
+                    <span id="result-key"></span>
+                </div>
+                <div class="output-display">
+                    <label>Ciphertext (Hex):</label>
+                    <span id="result-ciphertext" class="binary-display"></span>
+                </div>
+                
+                <div class="flow-diagram" id="flow-diagram"></div>
+            </div>
+            
+            <div class="result-card">
+                <h3>Step-by-Step Visualization</h3>
+                <div class="steps-container" id="steps-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentAlgorithm = 'des';
+        
+        function switchAlgorithm(algo) {
+            currentAlgorithm = algo;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn.${algo}`).classList.add('active');
+            
+            // Update encrypt button
+            const btn = document.getElementById('encrypt-btn');
+            btn.className = `encrypt-btn ${algo}`;
+            
+            // Update info box
+            const infoBox = document.getElementById('algorithm-info');
+            const keyHint = document.getElementById('key-hint');
+            
+            if (algo === 'des') {
+                infoBox.innerHTML = `
+                    <h4>About DES</h4>
+                    <p>DES is a symmetric-key block cipher with 64-bit block size and 56-bit key. It uses 16 rounds of Feistel network with expansion, substitution (S-boxes), and permutation (P-box) operations. The algorithm was once the standard but is now considered insecure due to its small key size.</p>
+                `;
+                keyHint.textContent = 'DES: 16 hex characters (64 bits, 8 bytes) | Uses 56 bits + 8 parity bits';
+                document.getElementById('key').value = '133457799BBCDFF1';
+            } else {
+                infoBox.innerHTML = `
+                    <h4>About AES</h4>
+                    <p>AES is a symmetric block cipher with 128-bit block size supporting 128, 192, or 256-bit keys. It uses substitution-permutation network with 10, 12, or 14 rounds based on key size. Operations include SubBytes (S-box), ShiftRows, MixColumns (Galois Field), and AddRoundKey.</p>
+                `;
+                keyHint.textContent = 'AES-128: 32 hex characters (128 bits, 16 bytes) | Standard: 10 rounds';
+                document.getElementById('key').value = '2b7e151628aed2a6abf7158809cf4f3c';
+            }
+            
+            // Hide results
+            document.getElementById('results').classList.remove('visible');
+        }
+        
+        async function encrypt() {
+            const plaintext = document.getElementById('plaintext').value;
+            const key = document.getElementById('key').value;
+            
+            if (!plaintext) {
+                alert('Please enter plaintext to encrypt');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('visible');
+            document.getElementById('results').classList.remove('visible');
+            document.getElementById('encrypt-btn').disabled = true;
+            
+            try {
+                const response = await fetch(`/${currentAlgorithm}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                
+                // Display results
+                document.getElementById('result-plaintext').textContent = data.plaintext;
+                document.getElementById('result-key').textContent = data.key;
+                document.getElementById('result-ciphertext').textContent = data.ciphertext;
+                
+                // Display flow diagram
+                displayFlowDiagram(currentAlgorithm);
+                
+                // Display steps
+                displaySteps(data.steps);
+                
+                // Show results
+                document.getElementById('results').classList.add('visible');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during encryption');
+            } finally {
+                document.getElementById('loading').classList.remove('visible');
+                document.getElementById('encrypt-btn').disabled = false;
+            }
+        }
+        
+        function displayFlowDiagram(algorithm) {
+            const container = document.getElementById('flow-diagram');
+            
+            if (algorithm === 'des') {
+                container.innerHTML = `
+                    <div class="flow-box input">Plaintext (64-bit)</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box process">IP Permutation</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box process">16 Feistel Rounds</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box process">IP⁻¹ Permutation</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box output">Ciphertext</div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="flow-box input">128-bit Block</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box process">AddRoundKey</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box process">10 Rounds</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box process">SubBytes → ShiftRows → AddRoundKey</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box output">Ciphertext</div>
+                `;
+            }
+        }
+        
+        function displaySteps(steps) {
+            const container = document.getElementById('steps-container');
+            container.innerHTML = '';
+            
+            steps.forEach((stepGroup, index) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'step-group open';
+                
+                const header = document.createElement('div');
+                header.className = 'step-header';
+                header.onclick = () => groupDiv.classList.toggle('open');
+                header.innerHTML = `
+                    <h4>${stepGroup.title}</h4>
+                    <span class="step-toggle">▼</span>
+                `;
+                
+                const content = document.createElement('div');
+                content.className = 'step-content';
+                
+                stepGroup.details.forEach(step => {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'step-item';
+                    
+                    let stepHTML = `<h5>${step.step || 'Step'}</h5>`;
+                    
+                    if (step.description) {
+                        stepHTML += `<p>${step.description}</p>`;
+                    }
+                    
+                    if (step.details) {
+                        stepHTML += `<pre>${step.details}</pre>`;
+                    }
+                    
+                    if (step.input) {
+                        stepHTML += `<p><strong>Input:</strong> <span class="binary-display">${truncateBinary(step.input)}</span></p>`;
+                    }
+                    
+                    if (step.output) {
+                        stepHTML += `<p><strong>Output:</strong> <span class="binary-display">${truncateBinary(step.output)}</span></p>`;
+                    }
+                    
+                    if (step.key) {
+                        stepHTML += `<p><strong>Key:</strong> <span class="binary-display">${truncateBinary(step.key)}</span></p>`;
+                    }
+                    
+                    stepDiv.innerHTML = stepHTML;
+                    content.appendChild(stepDiv);
+                });
+                
+                groupDiv.appendChild(header);
+                groupDiv.appendChild(content);
+                container.appendChild(groupDiv);
+            });
+        }
+        
+        function truncateBinary(str) {
+            if (!str) return '';
+            if (str.length <= 80) return str;
+            return str.substring(0, 40) + ' ... ' + str.substring(str.length - 40);
+        }
+    </script>
+</body>
+</html>
