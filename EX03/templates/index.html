@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptography Visualizer | RSA & Diffie-Hellman</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="icon"></span>
+                <h1>Cryptography Visualizer</h1>
+            </div>
+            <p class="subtitle">Interactive demonstration of RSA and Diffie-Hellman algorithms</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="rsa">
+                <span class="tab-icon"></span> RSA Algorithm
+            </button>
+            <button class="tab-btn" data-tab="dh">
+                <span class="tab-icon"></span> Diffie-Hellman
+            </button>
+        </nav>
+
+        <!-- RSA Section -->
+        <section id="rsa" class="tab-content active">
+            <div class="input-section">
+                <div class="input-card">
+                    <h3>Input Parameters</h3>
+                    <div class="input-group">
+                        <label>
+                            Prime p:
+                            <span class="tooltip" data-tooltip="Choose a large prime number">?</span>
+                        </label>
+                        <input type="number" id="rsa-p" value="61" min="2">
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            Prime q:
+                            <span class="tooltip" data-tooltip="Choose another prime number">?</span>
+                        </label>
+                        <input type="number" id="rsa-q" value="53" min="2">
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            Message:
+                            <span class="tooltip" data-tooltip="Text to encrypt">?</span>
+                        </label>
+                        <input type="text" id="rsa-message" value="Hello" placeholder="Enter message">
+                    </div>
+                    <button class="btn-primary" onclick="calculateRSA()">
+                        <span class="btn-icon"></span> Calculate RSA
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-section" id="rsa-results">
+                <!-- Key Generation -->
+                <div class="result-card">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Key Generation</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="step-list" id="key-gen-steps"></div>
+                        <div class="key-display">
+                            <div class="key-box public">
+                                <span class="key-label">Public Key (e, n)</span>
+                                <code id="public-key"></code>
+                            </div>
+                            <div class="key-box private">
+                                <span class="key-label">Private Key (d, n)</span>
+                                <code id="private-key"></code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Encryption -->
+                <div class="result-card">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Encryption</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="step-list" id="encryption-steps"></div>
+                        <div class="result-highlight">
+                            <span class="result-label">Ciphertext:</span>
+                            <code id="ciphertext-result"></code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decryption -->
+                <div class="result-card">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3> Decryption</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="step-list" id="decryption-steps"></div>
+                        <div class="result-highlight success">
+                            <span class="result-label">Decrypted Message:</span>
+                            <code id="decrypted-result"></code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Diffie-Hellman Section -->
+        <section id="dh" class="tab-content">
+            <div class="input-section">
+                <div class="input-card">
+                    <h3>Input Parameters</h3>
+                    <div class="input-group">
+                        <label>
+                            Prime p:
+                            <span class="tooltip" data-tooltip="Public prime modulus">?</span>
+                        </label>
+                        <input type="number" id="dh-p" value="23" min="2">
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            Generator g:
+                            <span class="tooltip" data-tooltip="Primitive root modulo p">?</span>
+                        </label>
+                        <input type="number" id="dh-g" value="5" min="2">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>
+                                Alice's Secret (xa):
+                                <span class="tooltip" data-tooltip="Alice's private key">?</span>
+                            </label>
+                            <input type="number" id="dh-xa" value="6" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label>
+                                Bob's Secret (xb):
+                                <span class="tooltip" data-tooltip="Bob's private key">?</span>
+                            </label>
+                            <input type="number" id="dh-xb" value="15" min="1">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="calculateDH()">
+                        <span class="btn-icon"></span> Calculate Diffie-Hellman
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-section" id="dh-results">
+                <div class="result-card full-width">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <h3>Diffie-Hellman Key Exchange</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="step-list" id="dh-steps"></div>
+                        
+                        <div class="dh-visualization">
+                            <div class="party alice">
+                                <h4>Alice</h4>
+                                <div class="key-display">
+                                    <div class="key-box">
+                                        <span class="key-label">Private Key</span>
+                                        <code id="alice-private"></code>
+                                    </div>
+                                    <div class="key-box">
+                                        <span class="key-label">Public Key</span>
+                                        <code id="alice-public"></code>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="exchange">
+                                <div class="arrow">➔</div>
+                                <div class="arrow">➔</div>
+                            </div>
+                            
+                            <div class="party bob">
+                                <h4>Bob</h4>
+                                <div class="key-display">
+                                    <div class="key-box">
+                                        <span class="key-label">Private Key</span>
+                                        <code id="bob-private"></code>
+                                    </div>
+                                    <div class="key-box">
+                                        <span class="key-label">Public Key</span>
+                                        <code id="bob-public"></code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="shared-secret">
+                            <h4>Shared Secret Key</h4>
+                            <code id="shared-secret"></code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>Educational demonstration | Cryptography Learning Tool</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
